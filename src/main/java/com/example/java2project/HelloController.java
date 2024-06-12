@@ -74,11 +74,13 @@ public class HelloController {
         numberOfMoves = gameState.getNumberOfMoves();
         playerTurn = gameState.getCurrentPlayer();
         Boolean endGame = gameState.getEndGame();
+
         if (endGame) {
             DialogUtils.showInformationDialog("YOU WON", "Congrats");
         } else {
             playerTurn = (playerTurn == PlayerType.USA) ? PlayerType.USSR : PlayerType.USA;
         }
+
         PlayerType[][] symbolsOnBoard = gameState.getPlayerSymbols();
         for (int i = 0; i < GameStateUtils.COUNTRY_INDEX; i++) {
             for (int j = 0; j < GameStateUtils.SUPERPOWER_INDEX; j++) {
@@ -89,25 +91,40 @@ public class HelloController {
                 }
             }
         }
-        // Restore the cards state
         cards = gameState.getCards();
         displayCards(cards);
+        GameState restoredGameState = new GameState(numberOfMoves, playerTurn, symbolsOnBoard, endGame, gameState.getCards());
     }
+
 
     public void addCardToVBox(Card card) {
-        VBox cardVBox = new VBox();
-        Label cardName = new Label(card.getName());
-        Label cardDescription = new Label(card.getEffect());
-        Button playButton = new Button("Play Card");
+        if (cardbox != null) {
 
-        playButton.setOnAction(event -> {
-            playCard(card);
-            cardbox.getChildren().remove(cardVBox);
-        });
+            VBox cardVBox = new VBox();
+            Label cardName = new Label(card.getName());
+            Label cardDescription = new Label(card.getEffect());
+            Button playButton = new Button("Play Card");
 
-        cardVBox.getChildren().addAll(cardName, cardDescription, playButton);
-        cardbox.getChildren().add(cardVBox);
+            playButton.setOnAction(event -> {
+                playCard(card);
+                cardbox.getChildren().remove(cardVBox);
+                // Send the game state after removing the card
+                if (UserRole.CLIENT.name().equals(HelloApplication.currentUserRole.name())) {
+                    sendGameStateToServer(Boolean.FALSE);
+                } else if (UserRole.SERVER.name().equals(HelloApplication.currentUserRole.name())) {
+                    sendGameStateToClient(Boolean.FALSE);
+                }
+            });
+
+            cardVBox.getChildren().addAll(cardName, cardDescription, playButton);
+            cardbox.getChildren().add(cardVBox);
+        }
+        else {
+            System.err.println("cardbox is null");
+
+        }
     }
+
 
     public void displayCards(List<Card> cards) {
         for (Card card : cards) {
@@ -165,7 +182,7 @@ public class HelloController {
     }
 
     public void saveGame() {
-        // FileUtils.saveGameToFile(gameBoard, numberOfMoves, playerTurn, GameStateUtils.COUNTRY_INDEX, GameStateUtils.SUPERPOWER_INDEX);
+        FileUtils.saveGameToFile(gameBoard, numberOfMoves, playerTurn,cards);
     }
 
     public void loadGame() {

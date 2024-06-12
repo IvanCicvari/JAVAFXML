@@ -81,7 +81,6 @@ public class HelloApplication extends Application {
              ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());){
             GameState receivedGameState = (GameState) ois.readObject();
             HelloController controller = new HelloController();
-
             HelloController.refreshGameBoard(receivedGameState,controller);
             oos.writeObject("Game state received!");
         } catch (IOException | ClassNotFoundException e) {
