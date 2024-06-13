@@ -28,11 +28,13 @@ public class HelloController {
     @FXML private Button USSRButtonYugoslavia;
     @FXML private Button USAButtonBenelux;
     @FXML private Button USSRButtonUKBenelux;
-    @FXML private VBox cardbox;
+    @FXML private Button firstCardButton;
     private static PlayerType playerTurn;
     private static Integer numberOfMoves;
     public static Button[][] gameBoard;
-    private List<Card> cards;
+
+    public static Button[][] buttonCard;
+
 
     @FXML private TextField chatTextField;
     @FXML private TextFlow chatTextFlow;
@@ -41,14 +43,17 @@ public class HelloController {
 
     public void initialize() {
         System.out.println("Initializing game...");
+
         chatTextFlow.setDisable(true);
         numberOfMoves = 0;
         playerTurn = PlayerType.USA;
         gameBoard = new Button[GameStateUtils.COUNTRY_INDEX][GameStateUtils.SUPERPOWER_INDEX];
-        cards = GameStateUtils.generateSampleCards();
+        buttonCard = new Button[GameStateUtils.ROW][GameStateUtils.COLUMNS];
         initializeGameBoard();
-        displayCards(cards);
-        System.out.println("Deck initialized.");
+        initializeButton();
+    }
+    private void initializeButton(){
+        buttonCard[0][0]= firstCardButton;
     }
 
     private void initializeGameBoard() {
@@ -71,6 +76,7 @@ public class HelloController {
     }
 
     public void restoreGameState(GameState gameState) {
+        // Restore basic game state information
         numberOfMoves = gameState.getNumberOfMoves();
         playerTurn = gameState.getCurrentPlayer();
         Boolean endGame = gameState.getEndGame();
@@ -81,88 +87,74 @@ public class HelloController {
             playerTurn = (playerTurn == PlayerType.USA) ? PlayerType.USSR : PlayerType.USA;
         }
 
-        PlayerType[][] symbolsOnBoard = gameState.getPlayerSymbols();
+        Integer[][] boardValues = gameState.getBoardValues();
         for (int i = 0; i < GameStateUtils.COUNTRY_INDEX; i++) {
             for (int j = 0; j < GameStateUtils.SUPERPOWER_INDEX; j++) {
-                if (symbolsOnBoard[i][j] != null) {
-                    gameBoard[i][j].setText(symbolsOnBoard[i][j].name());
+                if (boardValues[i][j] != null) {
+                    gameBoard[i][j].setText(boardValues[i][j].toString());
                 } else {
-                    gameBoard[i][j].setText("");
+                    gameBoard[i][j].setText("0");
                 }
             }
         }
-        cards = gameState.getCards();
-        displayCards(cards);
-        GameState restoredGameState = new GameState(numberOfMoves, playerTurn, symbolsOnBoard, endGame, gameState.getCards());
-    }
-
-
-    public void addCardToVBox(Card card) {
-        if (cardbox != null) {
-
-            VBox cardVBox = new VBox();
-            Label cardName = new Label(card.getName());
-            Label cardDescription = new Label(card.getEffect());
-            Button playButton = new Button("Play Card");
-
-            playButton.setOnAction(event -> {
-                playCard(card);
-                cardbox.getChildren().remove(cardVBox);
-                // Send the game state after removing the card
-                if (UserRole.CLIENT.name().equals(HelloApplication.currentUserRole.name())) {
-                    sendGameStateToServer(Boolean.FALSE);
-                } else if (UserRole.SERVER.name().equals(HelloApplication.currentUserRole.name())) {
-                    sendGameStateToClient(Boolean.FALSE);
+        String[][] cardValuesToSave = gameState.getCardEffect();
+        for (int i = 0; i < GameStateUtils.ROW; i++) {
+            for (int j = 0; j < GameStateUtils.COLUMNS; j++) {
+                if (cardValuesToSave[i][j] != null) {
+                    buttonCard[i][j].setText(GameStateUtils.getNextCard());
+                } else {
+                    buttonCard[i][j].setText("");
                 }
-            });
-
-            cardVBox.getChildren().addAll(cardName, cardDescription, playButton);
-            cardbox.getChildren().add(cardVBox);
+            }
         }
-        else {
-            System.err.println("cardbox is null");
 
-        }
     }
+    public void cardCreate(Event event) {
+        Button buttonPressed = (Button) event.getSource();
 
+        Card sampleCard = GameStateUtils.getSampleCard();
 
-    public void displayCards(List<Card> cards) {
-        for (Card card : cards) {
-            addCardToVBox(card);
+        Boolean endGame = checkWinner();
+        if (sampleCard != null && sampleCard.getEffect() != null) {
+            buttonPressed.setText(sampleCard.getEffect());
         }
-    }
 
-    private void playCard(Card card) {
-        System.out.println("Playing card: " + card.getName());
+        // Update the game state and send it to the server/client
+        if (UserRole.CLIENT.name().equals(HelloApplication.currentUserRole.name())) {
+            sendGameStateToServer(endGame);
+        } else if (UserRole.SERVER.name().equals(HelloApplication.currentUserRole.name())) {
+            sendGameStateToClient(endGame);
+        }
+
+        playerTurn = playerTurn == PlayerType.USA ? PlayerType.USSR : PlayerType.USA;
     }
 
     public void buttonPressed(Event event) {
         Button buttonPressed = (Button) event.getSource();
-        if (buttonPressed.getText().isBlank()) {
-            buttonPressed.setText(playerTurn.name());
-
-            numberOfMoves++;
-
-            Boolean endGame = checkWinner();
-            if (UserRole.CLIENT.name().equals(HelloApplication.currentUserRole.name())) {
-                sendGameStateToServer(endGame);
-            } else if(UserRole.SERVER.name().equals(HelloApplication.currentUserRole.name())) {
-                sendGameStateToClient(endGame);
-            }
-            playerTurn = playerTurn == PlayerType.USA ? PlayerType.USSR : PlayerType.USA;
-
+        int currentValue = 0;
+        if (!buttonPressed.getText().isBlank()) {
+            currentValue = Integer.parseInt(buttonPressed.getText());
         }
+        buttonPressed.setText(String.valueOf(currentValue + 1));
+
+        numberOfMoves++;
+
+        Boolean endGame = checkWinner();
+        if (UserRole.CLIENT.name().equals(HelloApplication.currentUserRole.name())) {
+            sendGameStateToServer(endGame);
+        } else if (UserRole.SERVER.name().equals(HelloApplication.currentUserRole.name())) {
+            sendGameStateToClient(endGame);
+        }
+        playerTurn = playerTurn == PlayerType.USA ? PlayerType.USSR : PlayerType.USA;
     }
 
     public void sendGameStateToServer(Boolean endGame) {
-        GameState gameState = GameStateUtils.createGameState(
-                gameBoard, numberOfMoves, playerTurn, endGame, cards);
+        GameState gameState = GameStateUtils.createGameState(gameBoard, numberOfMoves, playerTurn, endGame,buttonCard);
         NetworkingUtils.sendRequestToServer(gameState);
     }
 
     public void sendGameStateToClient(Boolean endGame) {
-        GameState gameState = GameStateUtils.createGameState(
-                gameBoard, numberOfMoves, playerTurn, endGame,cards);
+        GameState gameState = GameStateUtils.createGameState(gameBoard, numberOfMoves, playerTurn, endGame,buttonCard);
         NetworkingUtils.sendRequestToClient(gameState);
     }
 
@@ -182,7 +174,7 @@ public class HelloController {
     }
 
     public void saveGame() {
-        FileUtils.saveGameToFile(gameBoard, numberOfMoves, playerTurn,cards);
+//        FileUtils.saveGameToFile(gameBoard, numberOfMoves, playerTurn);
     }
 
     public void loadGame() {

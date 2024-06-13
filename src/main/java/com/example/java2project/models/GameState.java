@@ -7,24 +7,32 @@ import java.io.Serializable;
 import java.util.List;
 
 public class GameState implements Serializable {
-
     private Integer numberOfMoves;
     private PlayerType currentPlayer;
-    private PlayerType[][] playerSymbols;
+
+    public Integer[][] getBoardValues() {
+        return playerSymbols;
+    }
+
+    private Integer[][] playerSymbols;
     private Boolean endGame;
-    private List<Card> cards;
 
+    public String[][] getCardEffect() {
+        return cardEffect;
+    }
 
-    public GameState(Integer numberOfMoves, PlayerType currentPlayer, PlayerType[][] playerSymbols,
-                     Boolean endGame,List<Card> cards) {
+    private String[][] cardEffect;
+
+    public GameState(Integer numberOfMoves, PlayerType currentPlayer, Integer[][] playerSymbols,
+                     Boolean endGame,String[][] cardEffect) {
         this.numberOfMoves = numberOfMoves;
         this.currentPlayer = currentPlayer;
         this.playerSymbols = playerSymbols;
         this.endGame = endGame;
-        this.cards = cards;
+        this.cardEffect =cardEffect;
 
     }
-    public GameState( Integer numberOfMoves,PlayerType currentPlayer,PlayerType[][] playerSymbols ) {
+    public GameState( Integer numberOfMoves,PlayerType currentPlayer,Integer[][] playerSymbols ) {
         this.numberOfMoves = numberOfMoves;
         this.currentPlayer = currentPlayer;
         this.playerSymbols = playerSymbols;
@@ -32,17 +40,11 @@ public class GameState implements Serializable {
     public PlayerType getCurrentPlayer() {
         return currentPlayer;
     }
-    public PlayerType[][] getPlayerSymbols() {
-        return playerSymbols;
-    }
     public Integer getNumberOfMoves() {
         return numberOfMoves;
     }
     public Boolean getEndGame() {
         return endGame;
-    }
-    public List<Card> getCards() {
-        return cards;
     }
 
 }

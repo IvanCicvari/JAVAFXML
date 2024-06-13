@@ -11,10 +11,8 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.TextFlow?>
 
 <Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="499.0" prefWidth="1371.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.java2project.HelloController">
@@ -117,7 +115,11 @@
             </ScrollPane>
          </children>
       </GridPane>
-      <HBox layoutY="392.0" prefHeight="106.0" prefWidth="600.0" style="-fx-background-color: orange;" />
-      <VBox fx:id="cardbox" layoutX="586.0" layoutY="105.0" prefHeight="210.0" prefWidth="100.0" style="-fx-background-color: orange;" />
+      <Pane layoutX="35.0" layoutY="330.0" prefHeight="134.0" prefWidth="134.0" style="-fx-background-color: orange;">
+         <children>
+            <Button fx:id="firstCardButton" layoutX="12.0" layoutY="46.0" mnemonicParsing="false" onAction="#cardCreate" prefHeight="43.0" prefWidth="110.0" />
+            <Label layoutX="38.0" layoutY="6.0" text="Card Effect" />
+         </children>
+      </Pane>
    </children>
 </Pane>
