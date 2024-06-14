@@ -1,18 +1,28 @@
 package com.example.java2project;
 
+import com.example.java2project.config.ConfigurationKey;
 import com.example.java2project.config.UserRole;
 import com.example.java2project.models.Card;
 import com.example.java2project.models.GameState;
+import com.example.java2project.remote.RemoteChatService;
+import com.example.java2project.remote.RemoteChatServiceImpl;
 import com.example.java2project.utils.*;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;
+import javafx.util.Duration;
 
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 
 public class HelloController {
@@ -37,20 +47,32 @@ public class HelloController {
 
 
     @FXML private TextField chatTextField;
-    @FXML private TextFlow chatTextFlow;
-    @FXML private ScrollPane scroll;
+    @FXML private TextArea chatMessagesTextArea;
     @FXML private Label theLastGameMoveLabel;
+    public static RemoteChatService remoteChatService;
 
     public void initialize() {
         System.out.println("Initializing game...");
 
-        chatTextFlow.setDisable(true);
         numberOfMoves = 0;
         playerTurn = PlayerType.USA;
         gameBoard = new Button[GameStateUtils.COUNTRY_INDEX][GameStateUtils.SUPERPOWER_INDEX];
         buttonCard = new Button[GameStateUtils.ROW][GameStateUtils.COLUMNS];
         initializeGameBoard();
         initializeButton();
+        if(HelloApplication.currentUserRole == UserRole.SERVER)
+        {
+            startRmiRemoteChatServer();
+        }
+        else {
+            startRmiClient();
+        }
+        chatTextField.setOnKeyPressed(event -> {
+                    if (event.getCode().equals(KeyCode.ENTER)) {
+                        sendChatMessage();
+                    }
+                }
+        );
     }
     private void initializeButton(){
         buttonCard[0][0]= firstCardButton;
@@ -71,16 +93,15 @@ public class HelloController {
         gameBoard[5][1] = USSRButtonUKBenelux;
     }
 
-    public static void refreshGameBoard(GameState gameState, HelloController controller) {
-        controller.restoreGameState(gameState);
+    public static void refreshGameBoard(GameState gameState) {
+        restoreGameState(gameState);
     }
 
-    public void restoreGameState(GameState gameState) {
-        // Restore basic game state information
+    public static void restoreGameState(GameState gameState) {
         numberOfMoves = gameState.getNumberOfMoves();
         playerTurn = gameState.getCurrentPlayer();
         Boolean endGame = gameState.getEndGame();
-
+        System.out.println("playeer turn is:"+playerTurn);
         if (endGame) {
             DialogUtils.showInformationDialog("YOU WON", "Congrats");
         } else {
@@ -97,11 +118,12 @@ public class HelloController {
                 }
             }
         }
+
         String[][] cardValuesToSave = gameState.getCardEffect();
         for (int i = 0; i < GameStateUtils.ROW; i++) {
             for (int j = 0; j < GameStateUtils.COLUMNS; j++) {
                 if (cardValuesToSave[i][j] != null) {
-                    buttonCard[i][j].setText(GameStateUtils.getNextCard());
+                    buttonCard[i][j].setText(cardValuesToSave[i][j]);
                 } else {
                     buttonCard[i][j].setText("");
                 }
@@ -112,7 +134,7 @@ public class HelloController {
     public void cardCreate(Event event) {
         Button buttonPressed = (Button) event.getSource();
 
-        Card sampleCard = GameStateUtils.getSampleCard();
+        Card sampleCard = GameStateUtils.getNextCard();
 
         Boolean endGame = checkWinner();
         if (sampleCard != null && sampleCard.getEffect() != null) {
@@ -174,7 +196,7 @@ public class HelloController {
     }
 
     public void saveGame() {
-//        FileUtils.saveGameToFile(gameBoard, numberOfMoves, playerTurn);
+        FileUtils.saveGameToFile(gameBoard, numberOfMoves, playerTurn,buttonCard);
     }
 
     public void loadGame() {
@@ -182,11 +204,55 @@ public class HelloController {
         restoreGameState(recoveredGameState);
     }
 
-    public void sendChatMessage() {
-        System.out.println("jej");
-    }
 
     public void generateDocumentation() {
         DocumentationUtils.generateHtmlDocumentationFile();
+    }
+    public void sendChatMessage() {
+        String chatMessage = chatTextField.getText();
+
+        try {
+            remoteChatService.sendChatMessage(HelloApplication.currentUserRole.name() + ": " + chatMessage);
+
+            chatTextField.clear();
+
+            List<String> chatMessages = remoteChatService.getAllChatMessages();
+
+            chatMessagesTextArea.clear();
+
+            for (String message : chatMessages) {
+                chatMessagesTextArea.appendText(message + "\n");
+            }
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
+    public static void startRmiRemoteChatServer()
+    {
+        Integer rmiPort = ConfigurationReader.readIntegerConfigurationValueForKey(ConfigurationKey.RMI_PORT);
+        Integer randomPortHint = ConfigurationReader.readIntegerConfigurationValueForKey(ConfigurationKey.RANDOM_PORT_HINT);
+
+        try {
+            Registry registry = LocateRegistry.createRegistry(rmiPort);
+            remoteChatService = new RemoteChatServiceImpl();
+            RemoteChatService skeleton = (RemoteChatService) UnicastRemoteObject.exportObject(remoteChatService,randomPortHint);
+            registry.rebind(RemoteChatService.REMOTE_OBJECT_NAME, skeleton);
+            System.err.println("Object registered in RMI registry");
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+    private static void startRmiClient() {
+        Integer rmiPort = ConfigurationReader.readIntegerConfigurationValueForKey(ConfigurationKey.RMI_PORT);
+        String host = ConfigurationReader.readStringConfigurationValueForKey(ConfigurationKey.HOST);
+        try {
+            Registry registry = LocateRegistry.getRegistry(host, rmiPort);
+            remoteChatService = (RemoteChatService) registry.lookup(RemoteChatService.REMOTE_OBJECT_NAME);
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+        }
     }
 }

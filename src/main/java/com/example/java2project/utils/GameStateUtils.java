@@ -23,7 +23,7 @@ public class GameStateUtils {
                 if (!gameBoard[i][j].getText().isBlank()) {
                     boardValuesToSave[i][j] = Integer.parseInt(gameBoard[i][j].getText());
                 } else {
-                    boardValuesToSave[i][j] = 0; // Default value for empty fields
+                    boardValuesToSave[i][j] = 0;
                 }
             }
         }
@@ -64,16 +64,28 @@ public class GameStateUtils {
     // Sample method to generate a list of cards
     public static List<Card> generateSampleCards() {
         List<Card> cards = new ArrayList<>();
-        cards.add(new Card("1"));
-        cards.add(new Card("2"));
-        cards.add(new Card("3"));
+        cards.add(new Card("ADD 1 INFLUCANE POINT TO UK "));
+        cards.add(new Card("ADD 1 INFLUCANE POINT TO FRANCE "));
+        cards.add(new Card("ADD 4 INFLUCANE POINT TO YUGOSLAVIA "));
+        cards.add(new Card("ADD 3 INFLUCANE POINT TO BENELUX "));
+        cards.add(new Card("ADD 2 INFLUCANE POINT TO GERMANY "));
+        cards.add(new Card("ADD 4 INFLUCANE POINT TO POLAND "));
+        cards.add(new Card("ADD 2 INFLUCANE POINT TO UK "));
+        cards.add(new Card("ADD 2 INFLUCANE POINT TO FRANCE "));
+        cards.add(new Card("ADD 2 INFLUCANE POINT TO YUGOSLAVIA "));
+        cards.add(new Card("ADD 3 INFLUCANE POINT TO BENELUX "));
+        cards.add(new Card("ADD 3 INFLUCANE POINT TO GERMANY "));
+        cards.add(new Card("ADD 1 INFLUCANE POINT TO POLAND "));
         return cards;
     }
 
     // Sample method to get a single card from the list
-    public static String getNextCardEffect() {
+    public static Card getNextCard() {
         Card nextCard = cards.get(currentCardIndex);
         currentCardIndex = (currentCardIndex + 1) % cards.size(); // Move to the next card, loop back if at the end
-        return nextCard.getEffect();
+        return nextCard;
+    }
+    public static String getNextCardEffect() {
+        return getNextCard().getEffect();
     }
 }

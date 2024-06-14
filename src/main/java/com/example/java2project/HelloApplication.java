@@ -3,6 +3,8 @@ package com.example.java2project;
 import com.example.java2project.config.ConfigurationKey;
 import com.example.java2project.config.UserRole;
 import com.example.java2project.models.GameState;
+import com.example.java2project.remote.RemoteChatService;
+import com.example.java2project.utils.ConfigurationReader;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -17,13 +19,12 @@ import java.net.Socket;
 
 public class HelloApplication extends Application {
     public static UserRole currentUserRole;
-
     private static Scene mainScene;
 
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("hello-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 600, 600);
+        Scene scene = new Scene(fxmlLoader.load(), 1000, 600);
         mainScene = scene;
 
         stage.setTitle(currentUserRole.name());
@@ -59,12 +60,14 @@ public class HelloApplication extends Application {
 
         }
     }
+
     private static void startServer() {
         acceptRequestsFromClient();
     }
 
     private static void acceptRequestsFromClient() {
-        try (ServerSocket serverSocket = new ServerSocket(ConfigurationKey.SERVER_PORT)){
+        Integer serverPort = ConfigurationReader.readIntegerConfigurationValueForKey(ConfigurationKey.SERVER_PORT);
+        try (ServerSocket serverSocket = new ServerSocket(serverPort)){
             System.err.println("Server listening on port: " + serverSocket.getLocalPort());
 
             while (true) {
@@ -81,14 +84,15 @@ public class HelloApplication extends Application {
              ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());){
             GameState receivedGameState = (GameState) ois.readObject();
             HelloController controller = new HelloController();
-            HelloController.refreshGameBoard(receivedGameState,controller);
+            HelloController.refreshGameBoard(receivedGameState);
             oos.writeObject("Game state received!");
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
     private static void acceptRequestsFromServer() {
-        try (ServerSocket serverSocket = new ServerSocket(ConfigurationKey.CLIENT_PORT)){
+        Integer clientPort = ConfigurationReader.readIntegerConfigurationValueForKey(ConfigurationKey.CLIENT_PORT);
+        try (ServerSocket serverSocket = new ServerSocket(clientPort)){
             System.err.println("Server listening on port: " + serverSocket.getLocalPort());
 
             while (true) {

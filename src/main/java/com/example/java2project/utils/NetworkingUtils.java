@@ -11,7 +11,11 @@ import java.net.Socket;
 public class NetworkingUtils {
 
     public static void sendRequestToServer(GameState gameStateToSend) {
-        try (Socket clientSocket = new Socket(ConfigurationKey.HOST, ConfigurationKey.SERVER_PORT)){
+        Integer serverPort = ConfigurationReader.readIntegerConfigurationValueForKey(ConfigurationKey.SERVER_PORT);
+        String host = ConfigurationReader.readStringConfigurationValueForKey(ConfigurationKey.HOST);
+
+
+        try (Socket clientSocket = new Socket(host, serverPort)){
             System.err.println("Client is connecting to " + clientSocket.getInetAddress() + ":" +clientSocket.getPort());
             sendSerializableRequest(clientSocket, gameStateToSend);
         } catch (IOException | ClassNotFoundException e) {
@@ -19,7 +23,10 @@ public class NetworkingUtils {
         }
     }
     public static void sendRequestToClient(GameState gameStateToSend) {
-        try (Socket clientSocket = new Socket(ConfigurationKey.HOST, ConfigurationKey.CLIENT_PORT)){
+        Integer clientPort = ConfigurationReader.readIntegerConfigurationValueForKey(ConfigurationKey.CLIENT_PORT);
+        String host = ConfigurationReader.readStringConfigurationValueForKey(ConfigurationKey.HOST);
+
+        try (Socket clientSocket = new Socket(host, clientPort)){
             System.err.println("Client is connecting to " + clientSocket.getInetAddress() + ":" +clientSocket.getPort());
             sendSerializableRequest(clientSocket, gameStateToSend);
         } catch (IOException | ClassNotFoundException e) {

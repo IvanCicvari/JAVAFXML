@@ -11,16 +11,16 @@ import java.util.List;
 public class FileUtils {
     public static final String SAVE_GAME_FILE_NAME = "savegame.dat";
 
-//    public static void saveGameToFile(Button[][] gameBoard, Integer numberOfMoves, PlayerType turn) {
-//        GameState gameStateToSave = GameStateUtils.createGameState(gameBoard, numberOfMoves, turn, false);
-//
-//        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(SAVE_GAME_FILE_NAME))) {
-//            oos.writeObject(gameStateToSave);
-//            DialogUtils.showInformationDialog("Save game success!", "You have successfully saved your game!");
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+    public static void saveGameToFile(Button[][] gameBoard, Integer numberOfMoves, PlayerType turn,Button[][] cardEffect) {
+        GameState gameStateToSave = GameStateUtils.createGameState(gameBoard, numberOfMoves, turn, false,cardEffect);
+
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(SAVE_GAME_FILE_NAME))) {
+            oos.writeObject(gameStateToSave);
+            DialogUtils.showInformationDialog("Save game success!", "You have successfully saved your game!");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static GameState loadGameStateFromFile() {
         GameState recoveredGameState;
