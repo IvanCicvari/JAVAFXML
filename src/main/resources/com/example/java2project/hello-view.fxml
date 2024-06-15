@@ -10,15 +10,17 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.text.Font?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="499.0" prefWidth="1371.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.java2project.HelloController">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="499.0" prefWidth="873.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.java2project.HelloController">
    <children>
-      <MenuBar layoutY="2.0" prefHeight="25.0" prefWidth="600.0">
+      <MenuBar layoutY="2.0" prefHeight="25.0" prefWidth="873.0">
         <menus>
           <Menu mnemonicParsing="false" text="Gamestuff">
             <items>
               <MenuItem mnemonicParsing="false" onAction="#saveGame" text="SaveGame" />
                   <MenuItem mnemonicParsing="false" onAction="#loadGame" text="LoadGame" />
                   <MenuItem mnemonicParsing="false" onAction="#saveGame" text="SaveGame" />
+                  <MenuItem mnemonicParsing="false" onAction="#replayTheLastGame" text="Replay the last game" />
+
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Documatnation">
@@ -100,5 +102,6 @@
       <TextField fx:id="chatTextField" layoutX="582.0" layoutY="331.0" prefHeight="25.0" prefWidth="209.0" />
       <Button layoutX="791.0" layoutY="331.0" mnemonicParsing="false" onAction="#sendChatMessage" text="Send" />
       <TextArea fx:id="chatMessagesTextArea" layoutX="581.0" layoutY="130.0" prefHeight="200.0" prefWidth="253.0" />
+      <Label fx:id="theLastGameMoveLabel" layoutX="14.0" layoutY="63.0" text="The last game move:" />
    </children>
 </Pane>

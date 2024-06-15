@@ -10,10 +10,6 @@ public class GameState implements Serializable {
     private Integer numberOfMoves;
     private PlayerType currentPlayer;
 
-    public Integer[][] getBoardValues() {
-        return playerSymbols;
-    }
-
     private Integer[][] playerSymbols;
     private Boolean endGame;
 
@@ -46,5 +42,7 @@ public class GameState implements Serializable {
     public Boolean getEndGame() {
         return endGame;
     }
-
+    public Integer[][] getBoardValues() {
+        return playerSymbols;
+    }
 }

@@ -10,15 +10,25 @@ public class GameMove implements Serializable {
 
     private String location;
 
+
+    private Integer value;
+
     private LocalDateTime dateTime;
 
-    public GameMove(PlayerType playerType, String location, LocalDateTime dateTime) {
+    public GameMove(PlayerType playerType, String location,Integer value, LocalDateTime dateTime) {
         this.playerType = playerType;
         this.location = location;
+        this.value = value;
         this.dateTime = dateTime;
     }
+    public Integer getValue() {
+        return value;
+    }
 
-    public PlayerType getSymbol() {
+    public void setValue(Integer value) {
+        this.value = value;
+    }
+    public PlayerType getPlayerType() {
         return playerType;
     }
 

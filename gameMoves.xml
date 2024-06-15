@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<gameMoves>
+    <gameMove>
+        <playerType>USA</playerType>
+        <location>USAButtonUK</location>
+        <value>0</value>
+        <dateTime>15.06.2024 14:33:57</dateTime>
+    </gameMove>
+    <gameMove>
+        <playerType>USSR</playerType>
+        <location>USAButtonUK</location>
+        <value>1</value>
+        <dateTime>15.06.2024 14:34:01</dateTime>
+    </gameMove>
+    <gameMove>
+        <playerType>USA</playerType>
+        <location>USAButtonUK</location>
+        <value>2</value>
+        <dateTime>15.06.2024 14:34:09</dateTime>
+    </gameMove>
+</gameMoves>

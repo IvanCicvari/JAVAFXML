@@ -3,15 +3,21 @@ package com.example.java2project;
 import com.example.java2project.config.ConfigurationKey;
 import com.example.java2project.config.UserRole;
 import com.example.java2project.models.Card;
+import com.example.java2project.models.GameMove;
 import com.example.java2project.models.GameState;
 import com.example.java2project.remote.RemoteChatService;
 import com.example.java2project.remote.RemoteChatServiceImpl;
+import com.example.java2project.thread.GetLastGameMoveThread;
+import com.example.java2project.thread.SaveNewGameMoveThread;
 import com.example.java2project.utils.*;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
@@ -23,7 +29,9 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class HelloController {
     @FXML private Button USAButtonUK;
@@ -73,6 +81,9 @@ public class HelloController {
                     }
                 }
         );
+        GetLastGameMoveThread getLastGameMoveThread
+                = new GetLastGameMoveThread(theLastGameMoveLabel);
+        Thread starterThread = new Thread(getLastGameMoveThread);
     }
     private void initializeButton(){
         buttonCard[0][0]= firstCardButton;
@@ -92,7 +103,33 @@ public class HelloController {
         gameBoard[5][0] = USAButtonBenelux;
         gameBoard[5][1] = USSRButtonUKBenelux;
     }
+    public void replayTheLastGame() {
+        List<GameMove> gameMoveList = XmlUtils.getAllGameMoves();
 
+        AtomicInteger i = new AtomicInteger(0);
+
+        final Timeline replayer = new Timeline(
+                new KeyFrame(Duration.seconds(0),
+                        new EventHandler<ActionEvent>() {
+                            @Override
+                            public void handle(ActionEvent actionEvent) {
+                                GameMove gameMove = gameMoveList.get(i.get());
+                                String symbol = gameMove.getPlayerType().name();
+                                String buttonId = gameMove.getLocation();
+                                Integer value =gameMove.getValue();
+                                Scene scene = HelloApplication.getMainScene();
+                                Button button = (Button) scene.lookup("#" + buttonId);
+                                button.setText(String.valueOf(value)); // Convert Integer to String before setting as text
+                                i.set(i.get() + 1);
+                            }
+                        }
+                ),
+                new KeyFrame(Duration.seconds(1))
+        );
+
+        replayer.setCycleCount(gameMoveList.size());
+        replayer.play();
+    }
     public static void refreshGameBoard(GameState gameState) {
         restoreGameState(gameState);
     }
@@ -158,6 +195,14 @@ public class HelloController {
             currentValue = Integer.parseInt(buttonPressed.getText());
         }
         buttonPressed.setText(String.valueOf(currentValue + 1));
+
+        GameMove gameMove = new GameMove(playerTurn, buttonPressed.getId(),currentValue, LocalDateTime.now());
+        XmlUtils.saveGameMove(gameMove);
+
+        SaveNewGameMoveThread saveNewGameMoveThread
+                = new SaveNewGameMoveThread(gameMove);
+        Thread staterThread = new Thread(saveNewGameMoveThread);
+        staterThread.start();
 
         numberOfMoves++;
 
